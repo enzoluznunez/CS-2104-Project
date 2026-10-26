@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<h1>Leaderboard</h1>
+<p>Players ranked by total profit across every bet they have placed.</p>
+{% if not rows %}
+  <p class="card">Nobody has placed a bet yet. <a href="{{ url_for('index') }}">Be the first</a></p>
+{% else %}
+  <div class="table-wrap" tabindex="0" role="region" aria-labelledby="board-caption">
+    <table class="leaderboard">
+      <caption id="board-caption">Top 25 players by total profit</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="num">Rank</th><th scope="col">Player</th>
+          <th scope="col" class="num">Bets</th><th scope="col" class="num">Wins</th>
+          <th scope="col" class="num">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr {% if row.name | lower == (player_name or '') | lower %}class="me"{% endif %}>
+          <td class="num">{{ loop.index }}</td>
+          <th scope="row">{{ row.name }}{% if row.name | lower == (player_name or '') | lower %} <span class="you">(you)</span>{% endif %}</th>
+          <td class="num">{{ row.bets }}</td>
+          <td class="num">{{ row.wins }}</td>
+          <td class="num {{ 'up' if row.total > 0 else 'down' }}">{{ '%+.2f' | format(row.total) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}
