@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Bet Result{% endblock %}
+{% block content %}
+{% set won = bet.profit > 0 %}
+{# Win/loss is spelled out in words and symbols, never shown by colour alone. #}
+<section class="result card {{ 'result-win' if won else 'result-loss' }}">
+  <p class="result-tag">{{ '★ Winner' if won else '✖ Busted' }}</p>
+  <h1>
+    {% if won %}You made ${{ '%.2f' | format(bet.profit) }}{% else %}You lost ${{ '%.2f' | format(-bet.profit) }}{% endif %}
+  </h1>
+  <p class="result-sub">
+    {{ bet.player }} bet ${{ '%.2f' | format(bet.stake) }} that {{ bet.asset_name }}
+    would go {{ 'up' if bet.direction == 'buy' else 'down' }}
+    ({{ '%+.2f' | format(percent) }}%, {{ '%+.1f' | format(bet.pips) }} pips).
+  </p>
+
+  <dl class="details">
+    <div><dt>Entered</dt><dd>{{ bet.entry_date }} at {{ '%.4f' | format(bet.entry_price) | float }}</dd></div>
+    <div><dt>Exited</dt><dd>{{ bet.exit_date }} at {{ '%.4f' | format(bet.exit_price) | float }}</dd></div>
+    <div><dt>Direction</dt><dd>{{ bet.direction | capitalize }}</dd></div>
+  </dl>
+
+  <p class="actions">
+    <a class="cta" href="{{ url_for('index', symbol=bet.symbol, direction=bet.direction, stake=bet.stake) }}">Bet again</a>
+    <a href="{{ url_for('history') }}">See all my bets</a>
+  </p>
+</section>
+{% endblock %}

@@ -42,12 +42,12 @@
   <div class="field-row">
     <div class="field">
       <label for="entry_date">Enter on</label>
-      <input type="date" id="entry_date" name="entry_date" required
+      <input type="date" id="entry_date" name="entry_date" required aria-describedby="date-hint"
              min="{{ first }}" max="{{ last }}" value="{{ form.get('entry_date', '') }}">
     </div>
     <div class="field">
       <label for="exit_date">Exit on</label>
-      <input type="date" id="exit_date" name="exit_date" required
+      <input type="date" id="exit_date" name="exit_date" required aria-describedby="date-hint"
              min="{{ first }}" max="{{ last }}" value="{{ form.get('exit_date', '') }}">
     </div>
   </div>
