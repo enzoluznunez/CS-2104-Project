@@ -1,0 +1,31 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.15, pytest-9.1.1, pluggy-1.7.0 -- /usr/local/bin/python
+rootdir: /app
+configfile: pytest.ini
+testpaths: tests
+collecting ... collected 22 items
+
+tests/test_app.py::test_database_is_loaded_from_csv PASSED               [  4%]
+tests/test_app.py::test_all_pages_load PASSED                            [  9%]
+tests/test_app.py::test_form_fields_have_labels PASSED                   [ 13%]
+tests/test_app.py::test_winning_bet_is_settled_and_saved PASSED          [ 18%]
+tests/test_app.py::test_weekend_dates_snap_to_trading_days PASSED        [ 22%]
+tests/test_app.py::test_invalid_bet_shows_error_and_saves_nothing PASSED [ 27%]
+tests/test_app.py::test_history_and_leaderboard_show_bets PASSED         [ 31%]
+tests/test_app.py::test_player_names_are_case_insensitive PASSED         [ 36%]
+tests/test_app.py::test_missing_bet_returns_404 PASSED                   [ 40%]
+tests/test_betting.py::test_buy_wins_when_price_rises PASSED             [ 45%]
+tests/test_betting.py::test_sell_wins_when_price_falls PASSED            [ 50%]
+tests/test_betting.py::test_buy_loses_when_price_falls PASSED            [ 54%]
+tests/test_betting.py::test_parse_bet_accepts_valid_form PASSED          [ 59%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[symbol--Pick an asset] PASSED [ 63%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[direction-hold-buying or selling] PASSED [ 68%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[stake-lots-as a number] PASSED [ 72%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[stake-0-more than $0] PASSED [ 77%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[stake--5-more than $0] PASSED [ 81%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[stake-2000000-at most] PASSED [ 86%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[entry_date-not-a-date-year-month-day] PASSED [ 90%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[exit_date-2019-01-01-after the entry date] PASSED [ 95%]
+tests/test_betting.py::test_parse_bet_rejects_bad_input[exit_date-2020-01-02-after the entry date] PASSED [100%]
+
+============================== 22 passed in 0.60s ==============================
