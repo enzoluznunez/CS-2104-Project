@@ -7,10 +7,6 @@ a stake. The site settles the bet straight away against real 2015–2025 closing
 prices and tells you whether you won or lost, by how much, and how many pips
 the market moved.
 
-It is built for sports bettors and casual gamblers who want the thrill of a
-sportsbook with zero real money at risk. All data is historical, so every bet
-is instant.
-
 ![Place a bet page](docs/index.png)
 
 ## Pages
