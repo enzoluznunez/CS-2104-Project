@@ -1,0 +1,13 @@
+# Python bytecode and virtual environments
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# The SQLite database is rebuilt from data/prices.csv on startup
+instance/
+*.db
+
+# macOS
+.DS_Store
