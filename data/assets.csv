@@ -1,0 +1,11 @@
+symbol,name,category,pip_size
+^GSPC,S&P 500,Index,1
+^IXIC,Nasdaq Composite,Index,1
+^DJI,Dow Jones Industrial Average,Index,1
+GC=F,Gold,Metal,0.1
+SI=F,Silver,Metal,0.01
+CL=F,Crude Oil,Energy,0.01
+EURUSD=X,EUR/USD,Forex,0.0001
+GBPUSD=X,GBP/USD,Forex,0.0001
+USDJPY=X,USD/JPY,Forex,0.01
+BTC-USD,Bitcoin,Crypto,1
