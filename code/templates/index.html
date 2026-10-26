@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Place a Bet{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Did you call it?</h1>
+  <p>Pick a market, a direction and a date range. We settle your bet instantly
+     against what really happened between {{ first }} and {{ last }}.</p>
+</section>
+
+<form class="bet-form card" method="post" action="{{ url_for('place_bet') }}">
+  <div class="field">
+    <label for="player_name">Player name</label>
+    <input id="player_name" name="player_name" required maxlength="30"
+           autocomplete="nickname"
+           value="{{ form.get('player_name') or player_name or '' }}">
+  </div>
+
+  <div class="field">
+    <label for="symbol">Market</label>
+    <select id="symbol" name="symbol" required>
+      {# Group the dropdown by category so long lists stay scannable. #}
+      {% for category, group in assets | groupby('category') %}
+      <optgroup label="{{ category }}">
+        {% for asset in group %}
+        <option value="{{ asset.symbol }}" {% if form.get('symbol') == asset.symbol %}selected{% endif %}>{{ asset.name }}</option>
+        {% endfor %}
+      </optgroup>
+      {% endfor %}
+    </select>
+  </div>
+
+  <fieldset class="field direction">
+    <legend>Direction</legend>
+    <input type="radio" id="buy" name="direction" value="buy" required
+           {% if form.get('direction', 'buy') == 'buy' %}checked{% endif %}>
+    <label for="buy" class="pill pill-buy">▲ Buy <small>price goes up</small></label>
+    <input type="radio" id="sell" name="direction" value="sell"
+           {% if form.get('direction') == 'sell' %}checked{% endif %}>
+    <label for="sell" class="pill pill-sell">▼ Sell <small>price goes down</small></label>
+  </fieldset>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="entry_date">Enter on</label>
+      <input type="date" id="entry_date" name="entry_date" required
+             min="{{ first }}" max="{{ last }}" value="{{ form.get('entry_date', '') }}">
+    </div>
+    <div class="field">
+      <label for="exit_date">Exit on</label>
+      <input type="date" id="exit_date" name="exit_date" required
+             min="{{ first }}" max="{{ last }}" value="{{ form.get('exit_date', '') }}">
+    </div>
+  </div>
+  <p class="hint" id="date-hint">Weekends and holidays use the nearest trading day inside your range.</p>
+
+  <div class="field">
+    <label for="stake">Stake (USD)</label>
+    <input type="number" id="stake" name="stake" required min="1" max="1000000"
+           step="0.01" inputmode="decimal" value="{{ form.get('stake', '100') }}">
+  </div>
+
+  <button type="submit" class="cta">Place bet</button>
+</form>
+{% endblock %}
