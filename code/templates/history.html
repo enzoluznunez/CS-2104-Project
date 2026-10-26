@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}My Bets{% endblock %}
+{% block content %}
+<h1>My bets</h1>
+{% if not player_name %}
+  <p class="card">Place your first bet to start a history.
+     <a href="{{ url_for('index') }}">Place a bet</a></p>
+{% elif not bets %}
+  <p class="card">No bets yet, {{ player_name }}. <a href="{{ url_for('index') }}">Place a bet</a></p>
+{% else %}
+  <ul class="stats" aria-label="Summary">
+    <li><span class="stat-label">Bets</span><span class="stat-value">{{ summary.count }}</span></li>
+    <li><span class="stat-label">Win rate</span><span class="stat-value">{{ summary.win_rate }}%</span></li>
+    <li><span class="stat-label">Net result</span>
+        <span class="stat-value {{ 'up' if summary.total > 0 else 'down' }}">{{ '%+.2f' | format(summary.total) }}</span></li>
+    <li><span class="stat-label">Best bet</span><span class="stat-value">{{ '%+.2f' | format(summary.best) }}</span></li>
+    <li><span class="stat-label">Worst bet</span><span class="stat-value">{{ '%+.2f' | format(summary.worst) }}</span></li>
+  </ul>
+
+  <div class="table-wrap" tabindex="0" role="region" aria-labelledby="bets-caption">
+    <table>
+      <caption id="bets-caption">Every bet placed by {{ player_name }}, newest first</caption>
+      <thead>
+        <tr>
+          <th scope="col">Market</th><th scope="col">Direction</th>
+          <th scope="col">Dates</th><th scope="col" class="num">Stake</th>
+          <th scope="col" class="num">Pips</th><th scope="col" class="num">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bet in bets %}
+        <tr>
+          <th scope="row"><a href="{{ url_for('bet_result', bet_id=bet.id) }}">{{ bet.asset_name }}</a></th>
+          <td>{{ bet.direction | capitalize }}</td>
+          <td>{{ bet.entry_date }} → {{ bet.exit_date }}</td>
+          <td class="num">${{ '%.2f' | format(bet.stake) }}</td>
+          <td class="num">{{ '%+.1f' | format(bet.pips) }}</td>
+          <td class="num {{ 'up' if bet.profit > 0 else 'down' }}">{{ '%+.2f' | format(bet.profit) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}
