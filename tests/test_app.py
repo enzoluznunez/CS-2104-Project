@@ -150,3 +150,53 @@ def test_week_9_database_gets_new_columns(tmp_path):
     columns = {row[1] for row in conn.execute("PRAGMA table_info(bets)")}
     assert {"stop_loss", "stopped_out", "planned_exit_date"} <= columns
     assert conn.execute("SELECT profit, stopped_out FROM bets").fetchone() == (15.29, 0)
+
+
+def _close(app, symbol, day):
+    return sqlite3.connect(app.config["DATABASE"]).execute(
+        "SELECT close FROM prices WHERE symbol = ? AND date = ?",
+        (symbol, day)).fetchone()[0]
+
+
+def test_benchmark_defaults_to_sp500(client, app):
+    client.post("/bet", data={**BET, "symbol": "GC=F"})
+    html = client.get("/bet/1").get_data(as_text=True)
+    assert "Did you beat the market?" in html
+    assert 'for="vs"' in html and 'id="vs"' in html
+    assert "Buy and hold S&amp;P 500" in html
+    # The same $100 in the S&P 500 over the bet's dates.
+    expected = 100 * (_close(app, "^GSPC", "2020-12-31")
+                      / _close(app, "^GSPC", "2020-03-23") - 1)
+    assert f"{expected:+.2f}" in html
+
+
+def test_player_picks_benchmark_market(client, app):
+    client.post("/bet", data=BET)
+    html = client.get("/bet/1?vs=BTC-USD").get_data(as_text=True)
+    assert "Buy and hold Bitcoin" in html
+    assert '<option value="BTC-USD" selected>' in html
+    # Bitcoin more than tripled from March to December 2020.
+    assert "Bitcoin beat your bet by $" in html
+
+
+def test_bet_on_sp500_is_not_compared_with_itself(client):
+    client.post("/bet", data=BET)  # an S&P 500 bet
+    html = client.get("/bet/1?vs=%5EGSPC").get_data(as_text=True)
+    assert "Buy and hold Gold" in html
+    assert 'value="^GSPC"' not in html  # not offered in the dropdown
+
+
+def test_unknown_benchmark_falls_back_to_default(client):
+    client.post("/bet", data={**BET, "symbol": "GC=F"})
+    response = client.get("/bet/1?vs=NOPE")
+    assert response.status_code == 200
+    assert "Buy and hold S&amp;P 500" in response.get_data(as_text=True)
+
+
+def test_benchmark_without_trading_days_says_so(client):
+    # A weekend Bitcoin bet: the S&P 500 did not trade that Saturday or Sunday.
+    client.post("/bet", data={**BET, "symbol": "BTC-USD",
+                              "entry_date": "2020-03-21",
+                              "exit_date": "2020-03-22"})
+    html = client.get("/bet/1").get_data(as_text=True)
+    assert "S&amp;P 500 did not trade between" in html
