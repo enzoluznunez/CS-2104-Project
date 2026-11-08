@@ -1,4 +1,5 @@
 """Seeking Pips: bet on what markets already did."""
+import math
 import os
 from pathlib import Path
 
@@ -25,6 +26,13 @@ def create_app(config=None):
 
     db.init_db(app.config["DATABASE"], app.config["DATA_DIR"])
     app.teardown_appcontext(db.close_db)
+
+    @app.template_filter("price")
+    def format_price(value, pip_size):
+        # Show at least as many decimals as one pip, so EUR/USD prints
+        # 1.1000 rather than 1.1, and never fewer than two (3,234.85).
+        decimals = max(2, round(-math.log10(pip_size)))
+        return f"{value:,.{decimals}f}"
 
     @app.context_processor
     def inject_player():
@@ -78,7 +86,8 @@ def create_app(config=None):
     @app.get("/bet/<int:bet_id>")
     def bet_result(bet_id):
         bet = db.get_db().execute(
-            "SELECT bets.*, assets.name AS asset_name, players.name AS player"
+            "SELECT bets.*, assets.name AS asset_name, assets.pip_size,"
+            " players.name AS player"
             " FROM bets JOIN assets USING (symbol)"
             " JOIN players ON players.id = bets.player_id"
             " WHERE bets.id = ?", (bet_id,)).fetchone()

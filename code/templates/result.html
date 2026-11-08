@@ -20,8 +20,8 @@
   </p>
 
   <dl class="details">
-    <div><dt>Entered</dt><dd>{{ bet.entry_date }} at {{ '%.4f' | format(bet.entry_price) | float }}</dd></div>
-    <div><dt>Exited</dt><dd>{{ bet.exit_date }} at {{ '%.4f' | format(bet.exit_price) | float }}</dd></div>
+    <div><dt>Entered</dt><dd>{{ bet.entry_date }} at {{ bet.entry_price | price(bet.pip_size) }}</dd></div>
+    <div><dt>Exited</dt><dd>{{ bet.exit_date }} at {{ bet.exit_price | price(bet.pip_size) }}</dd></div>
     <div><dt>Direction</dt><dd>{{ bet.direction | capitalize }}</dd></div>
   </dl>
 

@@ -1,4 +1,5 @@
 """Integration tests: drive the real Flask routes and SQLite database."""
+import re
 import sqlite3
 
 BET = {"player_name": "Enzo", "symbol": "^GSPC", "direction": "buy",
@@ -84,3 +85,13 @@ def test_break_even_bet_is_not_called_a_loss(client, app):
     html = client.get("/bet/1").get_data(as_text=True)
     assert "You broke even" in html
     assert "Busted" not in html and "You lost" not in html
+
+
+def test_prices_keep_their_decimal_places(client):
+    # EUR/USD is quoted to 4 decimals (one pip = 0.0001), even when it ends in 0.
+    client.post("/bet", data={**BET, "symbol": "EURUSD=X"})
+    html = client.get("/bet/1").get_data(as_text=True)
+    assert re.search(r"2020-03-23 at 1\.\d{4}<", html)
+    client.post("/bet", data=BET)
+    html = client.get("/bet/2").get_data(as_text=True)
+    assert re.search(r"2020-03-23 at 2,\d{3}\.\d{2}<", html)
