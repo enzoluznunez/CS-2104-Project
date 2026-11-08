@@ -7,10 +7,15 @@ from flask import (Flask, abort, flash, redirect, render_template, request,
                    session, url_for)
 
 import db
-from betting import (BetError, find_prices, find_stop_out, parse_bet,
-                     price_path, settle)
+from betting import (BetError, benchmark, find_prices, find_stop_out,
+                     parse_bet, price_path, settle)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+
+# The market a bet is compared against until the player picks another one.
+# A bet on the S&P 500 itself is compared against gold instead.
+DEFAULT_BENCHMARK = "^GSPC"
+FALLBACK_BENCHMARK = "GC=F"
 
 
 def create_app(config=None):
@@ -97,7 +102,8 @@ def create_app(config=None):
 
     @app.get("/bet/<int:bet_id>")
     def bet_result(bet_id):
-        bet = db.get_db().execute(
+        conn = db.get_db()
+        bet = conn.execute(
             "SELECT bets.*, assets.name AS asset_name, assets.pip_size,"
             " players.name AS player"
             " FROM bets JOIN assets USING (symbol)"
@@ -106,7 +112,22 @@ def create_app(config=None):
         if bet is None:
             abort(404)
         percent = round(bet["profit"] / bet["stake"] * 100, 2)
-        return render_template("result.html", bet=bet, percent=percent)
+
+        # Benchmark: the player picks any other market (?vs=SYMBOL) and sees
+        # what buying and holding it over the bet's real dates would have made.
+        others = conn.execute(
+            "SELECT symbol, name, category FROM assets WHERE symbol != ?"
+            " ORDER BY category, name", (bet["symbol"],)).fetchall()
+        names = {asset["symbol"]: asset["name"] for asset in others}
+        vs = request.args.get("vs")
+        if vs not in names:  # missing, unknown or the bet's own market
+            vs = (DEFAULT_BENCHMARK if DEFAULT_BENCHMARK in names
+                  else FALLBACK_BENCHMARK)
+        compare = benchmark(conn, vs, bet["entry_date"], bet["exit_date"],
+                            bet["stake"])
+        return render_template("result.html", bet=bet, percent=percent,
+                               others=others, vs=vs, vs_name=names[vs],
+                               compare=compare)
 
     @app.get("/history")
     def history():

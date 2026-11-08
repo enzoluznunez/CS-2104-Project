@@ -109,3 +109,19 @@ def find_stop_out(path, direction, entry_price, stop_loss):
         if percent <= -stop_loss + 1e-9:
             return day
     return None
+
+
+def benchmark(db, symbol, entry_date, exit_date, stake):
+    """What stake would have made by buying and holding symbol instead.
+
+    Uses the same dates as the bet (moved to symbol's own trading days, since
+    e.g. Bitcoin trades on weekends and the S&P 500 does not). Returns None
+    when symbol has no trading days inside that window.
+    """
+    try:
+        entry, exit_ = find_prices(db, symbol, entry_date, exit_date)
+    except BetError:
+        return None
+    result = settle("buy", stake, entry["close"], exit_["close"], pip_size=1)
+    return {"entry_date": entry["date"], "exit_date": exit_["date"],
+            "profit": result["profit"], "percent": result["percent"]}
