@@ -98,3 +98,35 @@ class LineChart:
             return f"{value:,.{decimals}f}"
         sign = "+" if value > 0 else "-" if value < 0 else ""
         return f"{sign}${abs(value):,.{decimals}f}"
+
+
+def price_chart(path, entry_price, direction, stop_loss=None):
+    """Chart of a market's closing prices over a bet, with the stop marked."""
+    stop_price = None
+    if stop_loss is not None:
+        sign = 1 if direction == "buy" else -1
+        stop_price = entry_price * (1 - sign * stop_loss / 100)
+    chart = LineChart([day["close"] for day in path],
+                      [day["date"] for day in path],
+                      extra=[stop_price] if stop_price is not None else ())
+    chart.stop_price = stop_price
+    low = min(range(len(path)), key=lambda i: path[i]["close"])
+    high = max(range(len(path)), key=lambda i: path[i]["close"])
+    chart.low_day, chart.high_day = path[low], path[high]
+    return chart
+
+
+def running_total_chart(bets):
+    """Chart of a player's running total profit after each bet, oldest first."""
+    totals, total = [0.0], 0.0
+    for bet in bets:
+        total = round(total + bet["profit"], 2)
+        totals.append(total)
+    labels = ["Start"] + [f"Bet {n}" for n in range(1, len(bets) + 1)]
+    chart = LineChart(totals, labels, extra=[0], money=True)
+    peak = max(range(len(totals)), key=lambda i: totals[i])
+    trough = min(range(len(totals)), key=lambda i: totals[i])
+    chart.summary = {"final": totals[-1], "count": len(bets),
+                     "peak": totals[peak], "peak_label": labels[peak],
+                     "trough": totals[trough], "trough_label": labels[trough]}
+    return chart
