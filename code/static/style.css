@@ -160,6 +160,11 @@ input, select {
 }
 input:hover, select:hover { border-color: var(--muted); }
 .hint { margin: -.75rem 0 0; color: var(--muted); font-size: .95rem; }
+.optional { font-weight: 400; color: var(--muted); }
+/* A "%" shown inside the right edge of the stop loss box. */
+.suffix-input { position: relative; }
+.suffix-input input { padding-right: 2.5rem; }
+.suffix-input span { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--muted); }
 
 /* Buy/Sell toggle: real radio buttons, visually replaced by big pills. */
 .direction {
@@ -259,6 +264,14 @@ thead th { color: var(--gold); font-size: .9rem; text-transform: uppercase; lett
 .down { color: var(--loss); }
 .leaderboard tr.me { background: var(--surface-2); }
 .you { color: var(--gold); font-weight: 400; }
+.tag {
+  margin-left: .35rem;
+  padding: .1rem .5rem;
+  border: 1px solid var(--loss);
+  border-radius: 999px;
+  color: var(--loss);
+  font-size: .8rem;
+}
 
 .site-footer { padding: 1.5rem; text-align: center; color: var(--muted); font-size: .9rem; }
 

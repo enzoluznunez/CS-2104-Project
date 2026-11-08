@@ -21,12 +21,17 @@
 
   <dl class="details">
     <div><dt>Entered</dt><dd>{{ bet.entry_date }} at {{ bet.entry_price | price(bet.pip_size) }}</dd></div>
-    <div><dt>Exited</dt><dd>{{ bet.exit_date }} at {{ bet.exit_price | price(bet.pip_size) }}</dd></div>
+    <div><dt>{{ 'Stopped out' if bet.stopped_out else 'Exited' }}</dt><dd>{{ bet.exit_date }} at {{ bet.exit_price | price(bet.pip_size) }}</dd></div>
     <div><dt>Direction</dt><dd>{{ bet.direction | capitalize }}</dd></div>
+    <div><dt>Stop loss</dt><dd>
+      {%- if bet.stop_loss is none %}None
+      {%- elif bet.stopped_out %}{{ '%g' | format(bet.stop_loss) }}%, triggered (planned exit {{ bet.planned_exit_date }})
+      {%- else %}{{ '%g' | format(bet.stop_loss) }}%, not triggered{% endif -%}
+    </dd></div>
   </dl>
 
   <p class="actions">
-    <a class="cta" href="{{ url_for('index', symbol=bet.symbol, direction=bet.direction, stake=bet.stake) }}">Bet again</a>
+    <a class="cta" href="{{ url_for('index', symbol=bet.symbol, direction=bet.direction, stake=bet.stake, stop_loss=bet.stop_loss or '') }}">Bet again</a>
     <a href="{{ url_for('history') }}">See all my bets</a>
   </p>
 </section>
