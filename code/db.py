@@ -33,11 +33,29 @@ def init_db(database, data_dir):
     conn = sqlite3.connect(database)
     try:
         conn.executescript((CODE_DIR / "schema.sql").read_text())
+        _add_missing_columns(conn)
         if conn.execute("SELECT COUNT(*) FROM assets").fetchone()[0] == 0:
             _load_csv(conn, Path(data_dir))
         conn.commit()
     finally:
         conn.close()
+
+
+# Columns added to bets after Week 9. CREATE TABLE IF NOT EXISTS leaves an
+# existing table alone, so a database kept in the Docker volume needs them
+# added here. Existing bets simply have no stop loss.
+NEW_BET_COLUMNS = {
+    "stop_loss": "REAL",
+    "stopped_out": "INTEGER NOT NULL DEFAULT 0",
+    "planned_exit_date": "TEXT",
+}
+
+
+def _add_missing_columns(conn):
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(bets)")}
+    for name, definition in NEW_BET_COLUMNS.items():
+        if name not in existing:
+            conn.execute(f"ALTER TABLE bets ADD COLUMN {name} {definition}")
 
 
 def _load_csv(conn, data_dir):

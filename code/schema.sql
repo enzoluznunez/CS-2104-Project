@@ -34,7 +34,12 @@ CREATE TABLE IF NOT EXISTS bets (
     exit_price   REAL NOT NULL,
     pips         REAL NOT NULL,
     profit       REAL NOT NULL,
-    created_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Optional stop loss, as the % of the stake the player is willing to lose.
+    -- Older databases get these three columns added by db.init_db.
+    stop_loss          REAL CHECK (stop_loss IS NULL OR stop_loss > 0),
+    stopped_out        INTEGER NOT NULL DEFAULT 0,  -- 1 if the stop closed the bet
+    planned_exit_date  TEXT  -- exit the player asked for; exit_date is when it closed
 );
 
 CREATE INDEX IF NOT EXISTS idx_bets_player ON bets(player_id);
