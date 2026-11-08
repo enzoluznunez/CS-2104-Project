@@ -7,6 +7,7 @@ from flask import (Flask, abort, flash, redirect, render_template, request,
                    session, url_for)
 
 import db
+from charts import price_chart, running_total_chart
 from betting import (BetError, benchmark, find_prices, find_stop_out,
                      parse_bet, price_path, settle)
 
@@ -125,9 +126,13 @@ def create_app(config=None):
                   else FALLBACK_BENCHMARK)
         compare = benchmark(conn, vs, bet["entry_date"], bet["exit_date"],
                             bet["stake"])
+
+        chart = price_chart(
+            price_path(conn, bet["symbol"], bet["entry_date"], bet["exit_date"]),
+            bet["entry_price"], bet["direction"], bet["stop_loss"])
         return render_template("result.html", bet=bet, percent=percent,
                                others=others, vs=vs, vs_name=names[vs],
-                               compare=compare)
+                               compare=compare, chart=chart)
 
     @app.get("/history")
     def history():
@@ -142,7 +147,10 @@ def create_app(config=None):
                 " WHERE players.name = ? ORDER BY bets.id DESC",
                 (name,)).fetchall()
             summary = _summarize(bets)
-        return render_template("history.html", bets=bets, summary=summary)
+        # bets are newest first for the table; the chart runs oldest first.
+        chart = running_total_chart(bets[::-1]) if bets else None
+        return render_template("history.html", bets=bets, summary=summary,
+                               chart=chart)
 
     @app.get("/leaderboard")
     def leaderboard():

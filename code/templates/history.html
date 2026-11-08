@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_chart.html" import line_chart %}
 {% block title %}My Bets{% endblock %}
 {% block content %}
 <h1>My bets</h1>
@@ -17,6 +18,26 @@
     <li><span class="stat-label">Worst bet</span><span class="stat-value">{{ '%+.2f' | format(summary.worst) }}</span></li>
   </ul>
 
+  {% set s = chart.summary %}
+  <figure class="chart-figure card">
+    {% call line_chart(chart, "total-chart", "Running total profit after each bet",
+         "After " ~ s.count ~ " bets the running total is " ~ ('%+.2f' | format(s.final))
+         ~ " dollars. Highest " ~ ('%+.2f' | format(s.peak)) ~ " (" ~ s.peak_label
+         ~ "), lowest " ~ ('%+.2f' | format(s.trough)) ~ " (" ~ s.trough_label ~ ").") %}
+      {% set zy = chart.y(0) %}
+      <line class="chart-zero" x1="{{ chart.left }}" x2="{{ chart.plot_right }}" y1="{{ zy }}" y2="{{ zy }}"/>
+      {% if chart.values | length <= 60 %}
+      {% for value in chart.values[1:] %}
+      <circle class="chart-dot chart-dot-{{ 'win' if value >= chart.values[loop.index0] else 'loss' }}"
+              cx="{{ chart.x(loop.index) }}" cy="{{ chart.y(value) }}" r="4"/>
+      {% endfor %}
+      {% endif %}
+    {% endcall %}
+    <figcaption>Running total after each bet, oldest first. Highest
+      {{ '%+.2f' | format(s.peak) }} ({{ s.peak_label }}), lowest
+      {{ '%+.2f' | format(s.trough) }} ({{ s.trough_label }}).</figcaption>
+  </figure>
+
   <div class="table-wrap" tabindex="0" role="region" aria-labelledby="bets-caption">
     <table>
       <caption id="bets-caption">Every bet placed by {{ player_name }}, newest first</caption>
@@ -32,7 +53,7 @@
         <tr>
           <th scope="row"><a href="{{ url_for('bet_result', bet_id=bet.id) }}">{{ bet.asset_name }}</a></th>
           <td>{{ bet.direction | capitalize }}</td>
-          <td>{{ bet.entry_date }} → {{ bet.exit_date }}{% if bet.stopped_out %} <span class="tag">stopped</span>{% endif %}</td>
+          <td class="dates"><span>{{ bet.entry_date }} → {{ bet.exit_date }}</span>{% if bet.stopped_out %} <span class="tag">stopped</span>{% endif %}</td>
           <td class="num">${{ '%.2f' | format(bet.stake) }}</td>
           <td class="num">{{ '%+.1f' | format(bet.pips) }}</td>
           <td class="num {{ 'up' if bet.profit > 0 else 'down' if bet.profit < 0 }}">{{ '%+.2f' | format(bet.profit) }}</td>

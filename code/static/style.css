@@ -271,6 +271,27 @@ h2 { font-size: 1.5rem; margin: 0 0 .5rem; }
 .versus small { font-size: 1rem; font-weight: 400; color: var(--muted); }
 .verdict { font-size: 1.15rem; font-weight: 700; color: var(--gold); }
 
+/* Server-drawn SVG charts (templates/_chart.html) */
+.chart-figure { margin: 1.5rem 0; }
+.chart { display: block; width: 100%; height: auto; font-size: 13px; }
+.chart-grid { stroke: var(--surface-2); stroke-width: 1; }
+.chart-zero { stroke: var(--muted); stroke-width: 1.5; }
+.chart-axis { fill: var(--muted); }
+.chart-line { fill: none; stroke: var(--focus); stroke-width: 2.5; stroke-linejoin: round; }
+.chart-stop { stroke: var(--loss); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.chart-dot { stroke: var(--bg); stroke-width: 2; }
+.chart-dot-entry { fill: var(--gold); }
+.chart-dot-win { fill: var(--win); }
+.chart-dot-loss { fill: var(--loss); }
+.chart-label { font-weight: 700; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
+.chart-label-entry { fill: var(--gold); }
+.chart-label-win { fill: var(--win); }
+.chart-label-loss, .chart-label-stop { fill: var(--loss); }
+/* The SVG scales down on phones, so draw its text larger to stay readable. */
+@media (max-width: 40rem) { .chart { font-size: 19px; } }
+figcaption { margin-top: .5rem; color: var(--muted); font-size: .95rem; }
+.result figcaption { text-align: left; }
+
 /* Stats and tables */
 .stats {
   display: grid;
@@ -294,7 +315,11 @@ thead th { color: var(--gold); font-size: .9rem; text-transform: uppercase; lett
 .down { color: var(--loss); }
 .leaderboard tr.me { background: var(--surface-2); }
 .you { color: var(--gold); font-weight: 400; }
+/* The "stopped" tag may drop under the dates rather than widen the table. */
+td.dates { white-space: normal; }
+td.dates span { white-space: nowrap; }
 .tag {
+  display: inline-block;
   margin-left: .35rem;
   padding: .1rem .5rem;
   border: 1px solid var(--loss);
