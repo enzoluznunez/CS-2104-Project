@@ -12,7 +12,7 @@ The submitted PDF of this report is [`Week_10_Final_Report.pdf`](Week_10_Final_R
 
 - **Discovery deployment:** [Paste the working Discovery URL]
 - **Private repository:** <https://github.com/enzoluznunez/CS-2104-Project>
-- **Final demonstration:** uploaded to Canvas
+- **Final demonstration:** Video attached in Canvas submission
 
 ## Honor code statement
 

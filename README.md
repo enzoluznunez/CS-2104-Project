@@ -166,6 +166,10 @@ python code/app.py        # development server at http://127.0.0.1:5000
 - [x] Container built and tested locally (Week 9, updated for Week 10)
 - [ ] Deployed on Discovery
 
+## Final demonstration
+
+Video attached in Canvas submission.
+
 ## Author
 
 **Enzo Nunez** (enzonunez@vt.edu): project idea, design, implementation,
