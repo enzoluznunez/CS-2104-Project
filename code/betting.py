@@ -2,6 +2,7 @@
 from datetime import date
 
 MAX_STAKE = 1_000_000
+MAX_STOP_LOSS = 100  # percent of the stake
 
 
 class BetError(ValueError):
@@ -50,8 +51,20 @@ def parse_bet(form):
     if exit_ <= entry:
         raise BetError("The exit date must be after the entry date.")
 
+    # The stop loss is optional: a blank field means "ride it to the exit".
+    stop_loss = None
+    if form.get("stop_loss", "").strip():
+        try:
+            stop_loss = round(float(form["stop_loss"]), 2)
+        except ValueError:
+            raise BetError("Enter the stop loss as a percentage, like 10.") from None
+        if not 0 < stop_loss <= MAX_STOP_LOSS:
+            raise BetError(f"Stop loss must be more than 0% and at most "
+                           f"{MAX_STOP_LOSS}%.")
+
     return {"symbol": symbol, "direction": direction, "stake": stake,
-            "entry_date": entry.isoformat(), "exit_date": exit_.isoformat()}
+            "entry_date": entry.isoformat(), "exit_date": exit_.isoformat(),
+            "stop_loss": stop_loss}
 
 
 def find_prices(db, symbol, entry_date, exit_date):
@@ -71,3 +84,28 @@ def find_prices(db, symbol, entry_date, exit_date):
         raise BetError("There is no trading data for those dates. "
                        "Try a wider date range.")
     return entry, exit_
+
+
+def price_path(db, symbol, start_date, end_date):
+    """Every closing price for symbol from start_date to end_date, in order."""
+    return db.execute(
+        "SELECT date, close FROM prices WHERE symbol = ? AND date BETWEEN ? AND ?"
+        " ORDER BY date", (symbol, start_date, end_date)).fetchall()
+
+
+def find_stop_out(path, direction, entry_price, stop_loss):
+    """Return the day a stop loss closes the bet, or None if it never does.
+
+    path is the list of daily closes from the entry day onwards. The data has
+    one price per day, so the stop is checked at each close after entry: the
+    first close where the bet is down stop_loss percent or more ends the bet.
+    A big one-day move can therefore lose a little more than the stop.
+    """
+    sign = 1 if direction == "buy" else -1
+    for day in path[1:]:
+        percent = sign * (day["close"] - entry_price) / entry_price * 100
+        # The tiny tolerance stops float rounding (e.g. -9.9999999) from
+        # skipping a close that is exactly at the stop.
+        if percent <= -stop_loss + 1e-9:
+            return day
+    return None
