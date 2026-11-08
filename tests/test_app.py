@@ -22,7 +22,7 @@ def test_all_pages_load(client):
 def test_form_fields_have_labels(client):
     html = client.get("/").get_data(as_text=True)
     for field in ("player_name", "symbol", "buy", "sell", "entry_date",
-                  "exit_date", "stake"):
+                  "exit_date", "stake", "stop_loss"):
         assert f'for="{field}"' in html and f'id="{field}"' in html
 
 
@@ -95,3 +95,58 @@ def test_prices_keep_their_decimal_places(client):
     client.post("/bet", data=BET)
     html = client.get("/bet/2").get_data(as_text=True)
     assert re.search(r"2020-03-23 at 2,\d{3}\.\d{2}<", html)
+
+
+def test_stop_loss_closes_a_bet_early(client, app):
+    # Buying the S&P 500 at its February 2020 peak: held to December it wins,
+    # but a 10% stop closes it in the late-February crash.
+    peak = {**BET, "entry_date": "2020-02-19", "stop_loss": "10"}
+    html = client.post("/bet", data=peak, follow_redirects=True).get_data(
+        as_text=True)
+    assert "Stopped out" in html and "planned exit 2020-12-31" in html
+
+    row = sqlite3.connect(app.config["DATABASE"]).execute(
+        "SELECT exit_date, profit, stop_loss, stopped_out FROM bets").fetchone()
+    # The stop is checked at each close, and the S&P 500 fell 4.4% on
+    # 2020-02-27, jumping from about -8% straight past the stop to -12%.
+    assert row[0] == "2020-02-27"
+    assert -13 < row[1] <= -10 and row[2] == 10 and row[3] == 1
+
+    history = client.get("/history").get_data(as_text=True)
+    assert "stopped" in history
+
+
+def test_bet_without_stop_loss_runs_to_exit(client, app):
+    client.post("/bet", data={**BET, "entry_date": "2020-02-19"})
+    row = sqlite3.connect(app.config["DATABASE"]).execute(
+        "SELECT exit_date, profit, stop_loss, stopped_out FROM bets").fetchone()
+    assert row == ("2020-12-31", row[1], None, 0) and row[1] > 0
+
+
+def test_week_9_database_gets_new_columns(tmp_path):
+    # A database saved by the Week 9 version (no stop loss columns) must keep
+    # its bets and gain the new columns when the new version starts.
+    from app import create_app
+    database = tmp_path / "old.db"
+    conn = sqlite3.connect(database)
+    conn.executescript("""
+        CREATE TABLE bets (id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_id INTEGER NOT NULL, symbol TEXT NOT NULL,
+            direction TEXT NOT NULL, stake REAL NOT NULL,
+            entry_date TEXT NOT NULL, exit_date TEXT NOT NULL,
+            entry_price REAL NOT NULL, exit_price REAL NOT NULL,
+            pips REAL NOT NULL, profit REAL NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+        INSERT INTO bets (player_id, symbol, direction, stake, entry_date,
+            exit_date, entry_price, exit_price, pips, profit)
+        VALUES (1, '^GSPC', 'buy', 100, '2020-01-02', '2020-12-31',
+                3257.85, 3756.07, 498.2, 15.29);
+    """)
+    conn.commit()
+    conn.close()
+
+    create_app({"TESTING": True, "DATABASE": str(database)})
+    conn = sqlite3.connect(database)
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(bets)")}
+    assert {"stop_loss", "stopped_out", "planned_exit_date"} <= columns
+    assert conn.execute("SELECT profit, stopped_out FROM bets").fetchone() == (15.29, 0)
