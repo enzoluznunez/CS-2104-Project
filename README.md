@@ -169,5 +169,14 @@ python code/app.py        # development server at http://127.0.0.1:5000
 ## Author
 
 **Enzo Nunez** (enzonunez@vt.edu): project idea, design, implementation,
-testing and documentation. Claude (Anthropic) was used as a coding assistant;
-see the LLM statement in the submission.
+testing and documentation.
+
+## Honor code and LLM statement
+
+**Honor code:** As a Hokie, I will conduct myself with honor and integrity at all times. I will not lie, cheat, or steal, nor will I accept the actions of those who do.
+
+**LLM use:** I used Claude Code by Anthropic for code generation and debugging.
+
+Every source, template, config and test file starts with the same two
+statements in a comment. Data files (`data/*.csv`) and screenshots
+(`docs/*.png`) cannot hold comments, so this README covers them.

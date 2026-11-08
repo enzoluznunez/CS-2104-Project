@@ -1,3 +1,9 @@
+# Seeking Pips | Enzo Nunez (enzonunez) | CS 2104, section 83521
+# Honor code: As a Hokie, I will conduct myself with honor and integrity at
+#   all times. I will not lie, cheat, or steal, nor will I accept the actions
+#   of those who do.
+# LLM use: I used Claude Code by Anthropic for code generation and debugging.
+
 """Shared pytest fixtures: a fresh app and database for every test."""
 import sys
 from pathlib import Path
