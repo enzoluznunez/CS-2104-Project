@@ -143,5 +143,7 @@ def _summarize(bets):
 
 
 if __name__ == "__main__":
-    create_app().run(host="0.0.0.0",
+    # Development only. The debugger can run code, so it stays on localhost;
+    # the container uses gunicorn instead (see Dockerfile).
+    create_app().run(host="127.0.0.1",
                      port=int(os.environ.get("PORT", 5000)), debug=True)
