@@ -73,3 +73,14 @@ def test_player_names_are_case_insensitive(client, app):
 
 def test_missing_bet_returns_404(client):
     assert client.get("/bet/999").status_code == 404
+
+
+def test_break_even_bet_is_not_called_a_loss(client, app):
+    # Real prices rarely close exactly level, so store a zero-profit bet directly.
+    client.post("/bet", data=BET)
+    conn = sqlite3.connect(app.config["DATABASE"])
+    conn.execute("UPDATE bets SET exit_price = entry_price, pips = 0, profit = 0")
+    conn.commit()
+    html = client.get("/bet/1").get_data(as_text=True)
+    assert "You broke even" in html
+    assert "Busted" not in html and "You lost" not in html

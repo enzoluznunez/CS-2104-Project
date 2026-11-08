@@ -222,6 +222,8 @@ input:hover, select:hover { border-color: var(--muted); }
 }
 .result-win .result-tag, .result-win h1 { color: var(--win); }
 .result-loss .result-tag, .result-loss h1 { color: var(--loss); }
+.result-even { border-color: var(--gold); }
+.result-even .result-tag, .result-even h1 { color: var(--gold); }
 .result-sub { color: var(--muted); }
 .details {
   display: grid;

@@ -12,7 +12,7 @@
     <li><span class="stat-label">Bets</span><span class="stat-value">{{ summary.count }}</span></li>
     <li><span class="stat-label">Win rate</span><span class="stat-value">{{ summary.win_rate }}%</span></li>
     <li><span class="stat-label">Net result</span>
-        <span class="stat-value {{ 'up' if summary.total > 0 else 'down' }}">{{ '%+.2f' | format(summary.total) }}</span></li>
+        <span class="stat-value {{ 'up' if summary.total > 0 else 'down' if summary.total < 0 }}">{{ '%+.2f' | format(summary.total) }}</span></li>
     <li><span class="stat-label">Best bet</span><span class="stat-value">{{ '%+.2f' | format(summary.best) }}</span></li>
     <li><span class="stat-label">Worst bet</span><span class="stat-value">{{ '%+.2f' | format(summary.worst) }}</span></li>
   </ul>
@@ -35,7 +35,7 @@
           <td>{{ bet.entry_date }} → {{ bet.exit_date }}</td>
           <td class="num">${{ '%.2f' | format(bet.stake) }}</td>
           <td class="num">{{ '%+.1f' | format(bet.pips) }}</td>
-          <td class="num {{ 'up' if bet.profit > 0 else 'down' }}">{{ '%+.2f' | format(bet.profit) }}</td>
+          <td class="num {{ 'up' if bet.profit > 0 else 'down' if bet.profit < 0 }}">{{ '%+.2f' | format(bet.profit) }}</td>
         </tr>
         {% endfor %}
       </tbody>

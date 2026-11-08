@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Bet Result{% endblock %}
 {% block content %}
-{% set won = bet.profit > 0 %}
 {# Win/loss is spelled out in words and symbols, never shown by colour alone. #}
-<section class="result card {{ 'result-win' if won else 'result-loss' }}">
-  <p class="result-tag">{{ '★ Winner' if won else '✖ Busted' }}</p>
-  <h1>
-    {% if won %}You made ${{ '%.2f' | format(bet.profit) }}{% else %}You lost ${{ '%.2f' | format(-bet.profit) }}{% endif %}
-  </h1>
+<section class="result card {{ 'result-win' if bet.profit > 0 else 'result-loss' if bet.profit < 0 else 'result-even' }}">
+  {% if bet.profit > 0 %}
+  <p class="result-tag">★ Winner</p>
+  <h1>You made ${{ '%.2f' | format(bet.profit) }}</h1>
+  {% elif bet.profit < 0 %}
+  <p class="result-tag">✖ Busted</p>
+  <h1>You lost ${{ '%.2f' | format(-bet.profit) }}</h1>
+  {% else %}
+  <p class="result-tag">= Push</p>
+  <h1>You broke even</h1>
+  {% endif %}
   <p class="result-sub">
     {{ bet.player }} bet ${{ '%.2f' | format(bet.stake) }} that {{ bet.asset_name }}
     would go {{ 'up' if bet.direction == 'buy' else 'down' }}
