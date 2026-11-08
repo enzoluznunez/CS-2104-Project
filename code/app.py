@@ -7,7 +7,8 @@ from flask import (Flask, abort, flash, redirect, render_template, request,
                    session, url_for)
 
 import db
-from betting import BetError, find_prices, parse_bet, settle
+from betting import (BetError, find_prices, find_stop_out, parse_bet,
+                     price_path, settle)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -69,16 +70,27 @@ def create_app(config=None):
             # Send the user back with what they typed so they can fix it.
             return redirect(url_for("index", **request.form))
 
+        planned_exit = exit_["date"]
+        stop_day = None
+        if bet["stop_loss"] is not None:
+            path = price_path(conn, bet["symbol"], entry["date"], exit_["date"])
+            stop_day = find_stop_out(path, bet["direction"], entry["close"],
+                                     bet["stop_loss"])
+            if stop_day is not None:
+                exit_ = stop_day  # the stop closed the bet early
+
         result = settle(bet["direction"], bet["stake"], entry["close"],
                         exit_["close"], asset["pip_size"])
         player_id = _get_or_create_player(conn, name)
         cursor = conn.execute(
             "INSERT INTO bets (player_id, symbol, direction, stake, entry_date,"
-            " exit_date, entry_price, exit_price, pips, profit)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            " exit_date, entry_price, exit_price, pips, profit, stop_loss,"
+            " stopped_out, planned_exit_date)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (player_id, bet["symbol"], bet["direction"], bet["stake"],
              entry["date"], exit_["date"], entry["close"], exit_["close"],
-             result["pips"], result["profit"]))
+             result["pips"], result["profit"], bet["stop_loss"],
+             int(stop_day is not None), planned_exit))
         conn.commit()
         session["player_name"] = name
         return redirect(url_for("bet_result", bet_id=cursor.lastrowid))
