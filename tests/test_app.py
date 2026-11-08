@@ -200,3 +200,15 @@ def test_benchmark_without_trading_days_says_so(client):
                               "exit_date": "2020-03-22"})
     html = client.get("/bet/1").get_data(as_text=True)
     assert "S&amp;P 500 did not trade between" in html
+
+
+def test_result_and_history_have_accessible_charts(client):
+    client.post("/bet", data={**BET, "stop_loss": "50"})
+    result = client.get("/bet/1").get_data(as_text=True)
+    assert 'role="img"' in result and "<polyline" in result
+    assert "S&amp;P 500 closing price, 2020-03-23 to 2020-12-31" in result
+    assert "Stop 1," in result  # the 50% stop is drawn and labelled
+
+    history = client.get("/history").get_data(as_text=True)
+    assert 'role="img"' in history
+    assert "Running total profit after each bet" in history
