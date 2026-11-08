@@ -35,4 +35,54 @@
     <a href="{{ url_for('history') }}">See all my bets</a>
   </p>
 </section>
+
+{# Flagship feature: compare the bet with simply buying and holding another market. #}
+<section class="card compare" id="compare" aria-labelledby="compare-heading">
+  <h2 id="compare-heading">Did you beat the market?</h2>
+  <p class="muted">What would the same ${{ '%.2f' | format(bet.stake) }} have made if you had
+     just bought another market on {{ bet.entry_date }} and sold it on {{ bet.exit_date }}?</p>
+
+  {# A GET form, so every comparison has its own shareable URL. #}
+  <form class="compare-form" method="get" action="{{ url_for('bet_result', bet_id=bet.id) }}#compare">
+    <div class="field">
+      <label for="vs">Compare against</label>
+      <select id="vs" name="vs">
+        {% for category, group in others | groupby('category') %}
+        <optgroup label="{{ category }}">
+          {% for asset in group %}
+          <option value="{{ asset.symbol }}" {% if asset.symbol == vs %}selected{% endif %}>{{ asset.name }}</option>
+          {% endfor %}
+        </optgroup>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="cta cta-small">Compare</button>
+  </form>
+
+  {% if compare %}
+  {% set edge = (bet.profit - compare.profit) | round(2) %}
+  <dl class="versus">
+    <div class="{{ 'ahead' if edge >= 0 }}">
+      <dt>Your bet: {{ bet.direction | capitalize }} {{ bet.asset_name }}</dt>
+      <dd>{{ '%+.2f' | format(bet.profit) }} <small>({{ '%+.2f' | format(percent) }}%)</small></dd>
+    </div>
+    <div class="{{ 'ahead' if edge <= 0 }}">
+      <dt>Buy and hold {{ vs_name }}</dt>
+      <dd>{{ '%+.2f' | format(compare.profit) }} <small>({{ '%+.2f' | format(compare.percent) }}%)</small></dd>
+    </div>
+  </dl>
+  <p class="verdict">
+    {% if edge > 0 %}▲ You beat {{ vs_name }} by ${{ '%.2f' | format(edge) }}.
+    {% elif edge < 0 %}▼ {{ vs_name }} beat your bet by ${{ '%.2f' | format(-edge) }}.
+    {% else %}= Dead heat: you matched {{ vs_name }} exactly.{% endif %}
+  </p>
+  {% if (compare.entry_date, compare.exit_date) != (bet.entry_date, bet.exit_date) %}
+  <p class="hint-inline">{{ vs_name }} does not trade every day your market does, so it uses its
+     nearest trading days: {{ compare.entry_date }} to {{ compare.exit_date }}.</p>
+  {% endif %}
+  {% else %}
+  <p class="verdict">{{ vs_name }} did not trade between {{ bet.entry_date }} and
+     {{ bet.exit_date }}, so there is nothing to compare. Try another market.</p>
+  {% endif %}
+</section>
 {% endblock %}
